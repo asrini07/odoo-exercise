@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 
 class LibraryBook(models.Model):
     _name = 'library.book'
@@ -26,6 +26,15 @@ class LibraryBook(models.Model):
     )
     author_ids = fields.Many2many('res.partner', string='Authors')
     cost_price = fields.Float('Book Cost', digits='Book Price')
+    currency_id = fields.Many2one('res.currency', string='Currency')
+    retail_price = fields.Monetary('Retail Price')
+
+    publisher_id = fields.Many2one('res.partner', string='Publisher', 
+        ondelete='set null',
+        context={},
+        domain=[],
+    )
+    category_id = fields.Many2one('library.book.category')
 
     def name_get(self):
         result = []
@@ -33,3 +42,26 @@ class LibraryBook(models.Model):
             rec_name = "%s (%s)" % (record.name, record.date_release)
             result.append((record.id, rec_name))
         return result
+
+    #validation
+    _sql_constraints =[
+        ('name_uniq', 'UNIQUE (name)', 'Book title must be unique.'),
+        ('positive_page', 'CHECK(pages > 0)', 'No of pages must be positive')
+    ]
+
+    @api.constrains('date_release')
+    def _check_release_date(self):
+        for record in self:
+            if record.date_release and record.date_release > fields.Date.today():
+                raise models.ValidationError('Release date must be in the past')
+
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    published_book_ids = fields.One2many('library.book', 'publisher_id', string='Published Books')
+    authored_book_ids = fields.Many2many(
+        'library.book',
+        string='Authored Books',
+        # relation='library_book_res_partner_rel'  # optional
+    )
+
