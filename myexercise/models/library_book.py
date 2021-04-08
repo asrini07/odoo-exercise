@@ -1,11 +1,23 @@
 from datetime import timedelta
 
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
+
+class BaseArchive(models.AbstractModel):
+    _name = 'base.archive'
+    _description = 'Abstract Archive'
+
+    active = fields.Boolean(default=True)
+
+    def do_archive(self):
+        for record in self:
+            record.active = not record.active
 
 class LibraryBook(models.Model):
     _name = 'library.book'
+    _inherit = ['base.archive']
     _description = 'Library Book'
-    _rec_name = 'short_name'
+    #_rec_name = 'short_name'
     _order = 'date_release desc, name'
 
     name = fields.Char('Title', required=True, index=True)
@@ -36,6 +48,9 @@ class LibraryBook(models.Model):
         context={},
         domain=[],
     )
+
+    publisher_city = fields.Char('Publisher City', related='publisher_id.city', readonly=True)
+
     category_id = fields.Many2one('library.book.category')
     age_days = fields.Float(
         string='Days Since Release',
@@ -43,6 +58,13 @@ class LibraryBook(models.Model):
         store=False,
         compute_sudo=True
     )
+
+    ref_doc_id = fields.Reference(selection='_referencable_models', string='Reference Document')
+
+    @api.model
+    def _referencable_models(self):
+        models = self.env['ir.model'].search([('field_id.name', '=', 'message_ids')])
+        return [(x.model, x.name) for x in models]
 
     @api.depends('date_release')
     def _compute_age(self):
@@ -106,3 +128,20 @@ class ResPartner(models.Model):
         # relation='library_book_res_partner_rel'  # optional
     )
 
+    count_books = fields.Integer('Number of Authored Books', compute='_compute_count_books')
+
+    @api.depends('authored_book_ids')
+    def _compute_count_books(self):
+        for r in self:
+            r.count_books = len(r.authored_book_ids)
+
+class LibraryMember(models.Model):
+    _name = 'library.member'
+    _inherits = {'res.partner': 'partner_id'}
+    _description = 'Library Member'
+
+    partner_id = fields.Many2one('res.partner', required=True, ondelete='cascade')
+    date_start = fields.Date('Member Since')
+    date_end = fields.Date('Termination Date')
+    member_number = fields.Char()
+    date_of_birth = fields.Date('Date of birth')
