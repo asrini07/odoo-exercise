@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id='library_book_lagi_action' model='ir.actions.act_window'>
+        <field name="name">Library Books Lagi</field>
+        <field name="res_model">library.book.lagi</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- <menuitem name="My Library Lagi" id="library_base_menu" /> -->
+    <menuitem name="Books Lagi" id="library_book_lagi_menu" parent="library_base_menu" action="library_book_lagi_action"/>
+
+    <!-- Form View -->
+    <record id="library_book_lagi_view_form" model="ir.ui.view">
+        <field name="name">Library Book Lagi Form</field>
+        <field name="model">library.book.lagi</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="make_available" string="Make Available" type="object"/>
+                    <button name="make_borrowed"  string="Make Borrowed" type="object"/>
+                    <button name="make_lost"  string="Make Lost" type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <group>
+                    <group>
+                        <field name="name"/>
+                        <field name="author_ids" widget="many2many_tags"/>
+                    </group>
+                    <group>
+                        <field name="date_release"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree(list) View -->
+    <record id="library_book_lagi_view_tree" model="ir.ui.view">
+        <field name="name">Library Book Lagi List</field>
+        <field name="model">library.book.lagi</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="date_release"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="library_book_lagi_view_search" model="ir.ui.view">
+        <field name="name">Library Book Lagi Search</field>
+        <field name="model">library.book.lagi</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="author_ids"/>
+                <filter string="Without Authors" name="without_author" domain="[('author_ids','=',False)]"/>
+            </search>
+        </field>
+    </record>
+</odoo>

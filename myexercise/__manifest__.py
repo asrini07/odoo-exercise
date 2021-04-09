@@ -30,6 +30,7 @@
         'views/templates.xml',
         'views/library_book.xml',
         'views/library_book_category.xml',
+        'views/library_book_lagi.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
